@@ -1,0 +1,36 @@
+name: openapiv2-method-doc-coverage
+
+on:
+  pull_request:
+    paths:
+      - "api/**/*.gateway.yaml"
+      - "api/**/*.openapiv2.yaml"
+      - "api/**/*.proto"
+      - "skills/openapiv2-method-doc-coverage/**"
+
+jobs:
+  openapiv2-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run fail-fast checks
+        run: |
+          python skills/openapiv2-method-doc-coverage/scripts/check_openapiv2_method_coverage.py \
+            --api-root api \
+            --service-glob "*/*/*" \
+            --ignore-file skills/openapiv2-method-doc-coverage/templates/ignore-rules.example.yaml \
+            --output-json /tmp/openapiv2-report.json
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapiv2-report
+          path: /tmp/openapiv2-report.json

@@ -1,0 +1,13 @@
+# 每一项表示一个临时豁免规则，过期后自动失效。
+# rule 可选：
+# - responses.200.examples
+# - tags
+# - summary
+# - description
+# - high_risk_constraints
+
+- method: default.api.oneops.netdev.v1.OneopsNetdev.Demo
+  rule: responses.200.examples
+  reason: 暂时仅返回 204，无业务响应体
+  owner: api-team
+  expires_at: 2099-12-31T00:00:00Z
