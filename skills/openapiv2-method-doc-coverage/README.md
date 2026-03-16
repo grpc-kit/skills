@@ -53,6 +53,17 @@ python tools/openapiv2/check_openapiv2_method_coverage.py \
 
 ---
 
+## 参数矩阵（默认值与覆盖方式）
+
+- `--api-root`：默认 `api`
+- `--service-glob`：默认 `*/*/*`
+- `--ignore-file`：默认空（不启用豁免）
+- `--output-json`：默认空（建议 CI 始终输出）
+
+当仓库目录结构与默认值不一致时，必须显式覆盖参数，避免漏检。
+
+---
+
 ### 第 3 步：接入 CI（PR 阻断）
 
 可直接参考模板：
@@ -72,6 +83,70 @@ python tools/openapiv2/check_openapiv2_method_coverage.py \
 - **统一规则版本**：在仓内固定 `RULESET_VERSION`，避免不同仓门禁漂移。
 - **先增量后全量**：PR 用增量目录，夜间任务跑全量 `*/*/*`。
 - **豁免可审计**：`ignore-rules.yaml` 必须包含 `reason/owner/expires_at`，过期自动收敛。
+
+---
+
+## 规则版本化建议
+
+- 当前脚本内置 `RULESET_VERSION = "v1"`。
+- 规则升级时建议同步记录：
+  - 新增规则/破坏性变化
+  - 迁移窗口和回滚策略
+  - baseline 刷新方式
+- 同一仓库建议一次仅升级一个主版本，避免门禁震荡。
+
+---
+
+## JSON 报告字段约定
+
+报告建议重点关注以下字段：
+
+- `ruleset_version`
+- `services[].service`
+- `services[].gateway_selector_count`
+- `services[].openapi_method_count`
+- `services[].missing_methods`
+- `services[].extra_methods`
+- `services[].missing_fields`
+- `services[].high_risk_violations`
+- `services[].warnings`
+- `summary.fail_count`
+- `summary.warning_count`
+- `exit_code`
+
+可用于 CI 阻断、看板聚合和趋势跟踪。
+
+---
+
+## 命令模板（增量/全量/豁免）
+
+增量检查（单服务）：
+
+```bash
+python tools/openapiv2/check_openapiv2_method_coverage.py \
+  --api-root api \
+  --service-glob oneops/netdev/v1 \
+  --output-json /tmp/openapiv2-report.json
+```
+
+全量检查：
+
+```bash
+python tools/openapiv2/check_openapiv2_method_coverage.py \
+  --api-root api \
+  --service-glob "*/*/*" \
+  --output-json /tmp/openapiv2-report.json
+```
+
+携带豁免规则：
+
+```bash
+python tools/openapiv2/check_openapiv2_method_coverage.py \
+  --api-root api \
+  --service-glob "*/*/*" \
+  --ignore-file tools/openapiv2/ignore-rules.yaml \
+  --output-json /tmp/openapiv2-report.json
+```
 
 ---
 
