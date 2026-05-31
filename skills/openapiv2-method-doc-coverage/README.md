@@ -6,13 +6,33 @@
 - method 四要素完整（`tags/summary/description/responses.200.examples`）
 - 高风险接口具备约束性描述
 
+如果目标仓当前的 `openapiv2` 已有一部分手写 method 文案，建议先执行一次 preserve-and-fill 同步，把 gateway 中缺失的 method skeleton 补齐，再跑检查脚本。
+
 对应检查脚本：
 
 - `scripts/check_openapiv2_method_coverage.py`
+- `scripts/sync_openapiv2_methods.py`
 
 ---
 
 ## 3 步快速接入
+
+### 第 0 步：先同步缺失 method（推荐）
+
+在目标仓根目录执行：
+
+```bash
+python skills/openapiv2-method-doc-coverage/scripts/sync_openapiv2_methods.py \
+  --gateway-file api/known/admin/v1/admin.gateway.yaml \
+  --openapi-file api/known/admin/v1/admin.openapiv2.yaml
+```
+
+行为说明：
+
+- preserve-and-fill：已有 method block 原样保留
+- 只为 gateway 中缺失的 selector 生成 skeleton block
+- skeleton block 默认补齐 `tags/summary/description/responses.200.examples`
+- 生成后仍应人工补写高风险约束和业务 examples
 
 ### 第 1 步：准备脚本与豁免模板
 
@@ -20,8 +40,10 @@
 
 - 方式 A（推荐，统一维护）：在 CI 中直接调用技能库脚本  
   `skills/openapiv2-method-doc-coverage/scripts/check_openapiv2_method_coverage.py`
+  `skills/openapiv2-method-doc-coverage/scripts/sync_openapiv2_methods.py`
 - 方式 B（仓内自治）：把脚本与模板复制到目标仓，例如：
   - `tools/openapiv2/check_openapiv2_method_coverage.py`
+  - `tools/openapiv2/sync_openapiv2_methods.py`
   - `tools/openapiv2/ignore-rules.yaml`（可从 `templates/ignore-rules.example.yaml` 初始化）
 
 ---
@@ -50,6 +72,11 @@ python tools/openapiv2/check_openapiv2_method_coverage.py \
 - `0`：通过
 - `1`：Fail-fast 失败（存在必须修复项）
 - `2`：执行错误（脚本异常或输入错误）
+
+同步脚本退出码约定：
+
+- `0`：同步成功并已写回 `openapiv2` 文件
+- `2`：执行错误（输入路径缺失、文档结构异常等）
 
 ---
 
@@ -120,6 +147,14 @@ python tools/openapiv2/check_openapiv2_method_coverage.py \
 
 ## 命令模板（增量/全量/豁免）
 
+先同步单服务：
+
+```bash
+python tools/openapiv2/sync_openapiv2_methods.py \
+  --gateway-file api/oneops/netdev/v1/microservice.gateway.yaml \
+  --openapi-file api/oneops/netdev/v1/microservice.openapiv2.yaml
+```
+
 增量检查（单服务）：
 
 ```bash
@@ -153,7 +188,7 @@ python tools/openapiv2/check_openapiv2_method_coverage.py \
 ## 常见问题
 
 - `responses.200.examples` 缺失太多怎么办？  
-  先按业务域分批补齐（如 backup/admin/firewall），避免一次性大改。
+  先运行 `sync_openapiv2_methods.py` 把缺失 method skeleton 补齐，再按业务域分批补真实 examples（如 backup/admin/firewall），避免一次性大改。
 
 - 某些接口只返回 `204` 是否必须有 `200` 示例？  
   建议补 `200` 示例；若暂不调整，使用 `ignore-rules.yaml` 临时豁免并设置过期时间。

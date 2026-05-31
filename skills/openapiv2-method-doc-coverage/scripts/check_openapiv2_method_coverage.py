@@ -131,6 +131,7 @@ def parse_method_blocks(text: str) -> List[Dict[str, object]]:
         if in_responses and re.match(r'^\s*"[0-9]{3}":\s*$', line) and not re.match(r'^\s*"200":\s*$', line):
             in_response_200 = False
 
+    flush_current()
     return blocks
 
 
