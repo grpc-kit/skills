@@ -18,7 +18,7 @@ TAG_HINTS = (
     (("/departments",), "部门管理"),
     (("/users",), "用户管理"),
     (("/groups",), "群组管理"),
-    (("/credentials", "/oatuh2/"), "安全相关"),
+    (("/credentials", "/oauth2/"), "安全相关"),
     (("/database",), "数据库相关"),
 )
 
