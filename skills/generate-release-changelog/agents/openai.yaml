@@ -1,0 +1,4 @@
+interface:
+  display_name: "生成发布变更日志"
+  short_description: "按 Git 版本范围汇总变更并更新 CHANGELOG。"
+  default_prompt: "使用 $generate-release-changelog 根据上个发布版本以来的实际代码变更更新本仓库 CHANGELOG。"
